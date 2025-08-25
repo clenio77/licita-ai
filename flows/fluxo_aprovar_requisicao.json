@@ -1,0 +1,9 @@
+{
+  "name": "Aprovar Requisicao",
+  "trigger": "Quando item criado em Requisicoes",
+  "actions": [
+    {"type": "Notificar", "target": "Aprovador"},
+    {"type": "Atualizar Status", "value": "Pendente"},
+    {"type": "Registrar Historico"}
+  ]
+}

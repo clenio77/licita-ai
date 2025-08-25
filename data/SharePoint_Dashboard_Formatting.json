@@ -1,0 +1,242 @@
+{
+  "name": "Dashboard SharePoint - Alta Performance",
+  "description": "Dashboard implementado diretamente no SharePoint usando JSON formatting",
+  "implementations": [
+    {
+      "type": "Lista Dashboard",
+      "name": "Dashboard_Principal",
+      "description": "Lista com uma linha que exibe todos os KPIs",
+      "columns": [
+        {
+          "name": "Total_Requisicoes",
+          "type": "Number",
+          "formula": "CountRows(Requisicoes)"
+        },
+        {
+          "name": "Pendentes",
+          "type": "Number",
+          "formula": "CountRows(Filter(Requisicoes, Status = 'Pendente'))"
+        },
+        {
+          "name": "Aprovadas",
+          "type": "Number",
+          "formula": "CountRows(Filter(Requisicoes, Status = 'Aprovado'))"
+        },
+        {
+          "name": "Taxa_Aprovacao",
+          "type": "Number",
+          "formula": "Round(CountRows(Filter(Requisicoes, Status = 'Aprovado')) / CountRows(Requisicoes) * 100, 1)"
+        }
+      ],
+      "viewFormatting": {
+        "schema": "https://developer.microsoft.com/json-schemas/sp/v2/list-formatting.schema.json",
+        "view": "dashboard",
+        "rowFormatter": {
+          "elmType": "div",
+          "style": {
+            "display": "flex",
+            "flex-direction": "column",
+            "gap": "20px",
+            "padding": "20px",
+            "background": "#f8f9fa"
+          },
+          "children": [
+            {
+              "elmType": "h1",
+              "txtContent": "Dashboard Licita-AI - SharePoint Nativo",
+              "style": {
+                "text-align": "center",
+                "color": "#2E75B6",
+                "margin": "0 0 20px 0"
+              }
+            },
+            {
+              "elmType": "div",
+              "style": {
+                "display": "grid",
+                "grid-template-columns": "repeat(auto-fit, minmax(250px, 1fr))",
+                "gap": "16px"
+              },
+              "children": [
+                {
+                  "elmType": "div",
+                  "style": {
+                    "background": "#E3F2FD",
+                    "border": "2px solid #2196F3",
+                    "border-radius": "8px",
+                    "padding": "20px",
+                    "text-align": "center"
+                  },
+                  "children": [
+                    {
+                      "elmType": "div",
+                      "txtContent": "Total Requisições",
+                      "style": {
+                        "font-size": "16px",
+                        "color": "#1976D2",
+                        "margin-bottom": "8px"
+                      }
+                    },
+                    {
+                      "elmType": "div",
+                      "txtContent": "[$Total_Requisicoes]",
+                      "style": {
+                        "font-size": "32px",
+                        "font-weight": "bold",
+                        "color": "#1565C0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "elmType": "div",
+                  "style": {
+                    "background": "#FFF3E0",
+                    "border": "2px solid #FF9800",
+                    "border-radius": "8px",
+                    "padding": "20px",
+                    "text-align": "center"
+                  },
+                  "children": [
+                    {
+                      "elmType": "div",
+                      "txtContent": "Pendentes",
+                      "style": {
+                        "font-size": "16px",
+                        "color": "#F57C00",
+                        "margin-bottom": "8px"
+                      }
+                    },
+                    {
+                      "elmType": "div",
+                      "txtContent": "[$Pendentes]",
+                      "style": {
+                        "font-size": "32px",
+                        "font-weight": "bold",
+                        "color": "#E65100"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "elmType": "div",
+                  "style": {
+                    "background": "#E8F5E8",
+                    "border": "2px solid #4CAF50",
+                    "border-radius": "8px",
+                    "padding": "20px",
+                    "text-align": "center"
+                  },
+                  "children": [
+                    {
+                      "elmType": "div",
+                      "txtContent": "Aprovadas",
+                      "style": {
+                        "font-size": "16px",
+                        "color": "#388E3C",
+                        "margin-bottom": "8px"
+                      }
+                    },
+                    {
+                      "elmType": "div",
+                      "txtContent": "[$Aprovadas]",
+                      "style": {
+                        "font-size": "32px",
+                        "font-weight": "bold",
+                        "color": "#2E7D32"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "elmType": "div",
+                  "style": {
+                    "background": "#F3E5F5",
+                    "border": "2px solid #9C27B0",
+                    "border-radius": "8px",
+                    "padding": "20px",
+                    "text-align": "center"
+                  },
+                  "children": [
+                    {
+                      "elmType": "div",
+                      "txtContent": "Taxa Aprovação",
+                      "style": {
+                        "font-size": "16px",
+                        "color": "#7B1FA2",
+                        "margin-bottom": "8px"
+                      }
+                    },
+                    {
+                      "elmType": "div",
+                      "txtContent": "[$Taxa_Aprovacao]%",
+                      "style": {
+                        "font-size": "32px",
+                        "font-weight": "bold",
+                        "color": "#6A1B9A"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Lista Status_Chart",
+      "name": "Distribuicao_Status",
+      "description": "Lista que exibe gráfico de distribuição por status",
+      "viewFormatting": {
+        "schema": "https://developer.microsoft.com/json-schemas/sp/v2/list-formatting.schema.json",
+        "view": "chart",
+        "rowFormatter": {
+          "elmType": "div",
+          "style": {
+            "display": "flex",
+            "justify-content": "space-between",
+            "align-items": "center",
+            "padding": "12px",
+            "border-bottom": "1px solid #E0E0E0",
+            "background": "White"
+          },
+          "children": [
+            {
+              "elmType": "div",
+              "txtContent": "[$Status]",
+              "style": {
+                "font-size": "16px",
+                "font-weight": "500",
+                "color": "Switch([$Status], 'Aprovado', '#4CAF50', 'Pendente', '#FF9800', 'Reprovado', '#F44336', 'Em Análise', '#2196F3', '#424242')"
+              }
+            },
+            {
+              "elmType": "div",
+              "txtContent": "[$Count] ([$Percentage]%)",
+              "style": {
+                "font-size": "14px",
+                "color": "#666666"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "performance_benefits": [
+    "Carregamento instantâneo (nativo do SharePoint)",
+    "Sem dependências externas",
+    "Atualização em tempo real",
+    "Responsivo em todos os dispositivos",
+    "Sem problemas de performance web",
+    "Integração nativa com listas existentes"
+  ],
+  "implementation_steps": [
+    "1. Criar lista Dashboard_Principal com uma linha",
+    "2. Aplicar JSON formatting na view",
+    "3. Configurar fórmulas nas colunas calculadas",
+    "4. Testar performance e responsividade",
+    "5. Personalizar cores e layout conforme necessário"
+  ]
+}

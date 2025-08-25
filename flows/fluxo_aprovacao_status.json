@@ -1,0 +1,8 @@
+{
+  "name": "Aprovar ou Reprovar",
+  "trigger": "Quando status alterado para 'Aprovado' ou 'Reprovado'",
+  "actions": [
+    {"type": "Notificar", "target": "Solicitante"},
+    {"type": "Registrar Historico"}
+  ]
+}

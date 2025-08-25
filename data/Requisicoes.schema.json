@@ -1,0 +1,93 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/list-formatting.schema.json",
+  "title": "Requisições",
+  "description": "Lista para gerenciar requisições de licitações",
+  "columns": [
+    {
+      "name": "Título da Licitação",
+      "type": "Text",
+      "required": true,
+      "maxLength": 255,
+      "description": "Título descritivo da licitação"
+    },
+    {
+      "name": "Descrição",
+      "type": "Note",
+      "required": true,
+      "description": "Descrição detalhada da licitação"
+    },
+    {
+      "name": "Data de Abertura",
+      "type": "DateTime",
+      "required": true,
+      "description": "Data prevista para abertura da licitação"
+    },
+    {
+      "name": "Status",
+      "type": "Choice",
+      "choices": ["Pendente", "Em Análise", "Aprovado", "Reprovado", "Cancelado"],
+      "defaultValue": "Pendente",
+      "required": true,
+      "description": "Status atual da requisição"
+    },
+    {
+      "name": "Solicitante",
+      "type": "User",
+      "required": true,
+      "description": "Usuário que solicitou a licitação"
+    },
+    {
+      "name": "Aprovador",
+      "type": "User",
+      "required": false,
+      "description": "Usuário responsável pela aprovação"
+    },
+    {
+      "name": "Valor Estimado",
+      "type": "Currency",
+      "required": false,
+      "description": "Valor estimado da licitação"
+    },
+    {
+      "name": "Categoria",
+      "type": "Choice",
+      "choices": ["Serviços", "Produtos", "Obras", "Tecnologia", "Outros"],
+      "required": false,
+      "description": "Categoria da licitação"
+    },
+    {
+      "name": "Observações",
+      "type": "Note",
+      "required": false,
+      "description": "Observações adicionais e resumos de IA"
+    },
+    {
+      "name": "Data de Criação",
+      "type": "DateTime",
+      "required": false,
+      "description": "Data de criação da requisição"
+    },
+    {
+      "name": "Data de Modificação",
+      "type": "DateTime",
+      "required": false,
+      "description": "Data da última modificação"
+    }
+  ],
+  "views": [
+    {
+      "name": "Todas as Requisições",
+      "columns": ["Título da Licitação", "Status", "Solicitante", "Data de Abertura", "Categoria"]
+    },
+    {
+      "name": "Minhas Requisições",
+      "columns": ["Título da Licitação", "Status", "Data de Abertura", "Categoria"],
+      "filter": "[Solicitante] eq [Me]"
+    },
+    {
+      "name": "Pendentes de Aprovação",
+      "columns": ["Título da Licitação", "Solicitante", "Data de Abertura", "Categoria"],
+      "filter": "[Status] eq 'Pendente'"
+    }
+  ]
+}

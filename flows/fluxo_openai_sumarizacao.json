@@ -1,0 +1,24 @@
+{
+  "name": "Sumarizar Descricao com OpenAI",
+  "trigger": "Quando item criado em Requisicoes",
+  "actions": [
+    {
+      "type": "Http",
+      "inputs": {
+        "method": "POST",
+        "uri": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "Authorization": "Bearer <seu_token>"
+        },
+        "body": {
+          "model": "gpt-4o",
+          "messages": [
+            {"role": "system", "content": "Resuma a licitação:"},
+            {"role": "user", "content": "@{triggerOutputs()?['body/Descricao']}"}
+          ]
+        }
+      }
+    },
+    {"type": "Atualizar Campo", "field": "Observacoes", "value": "<resumo gerado>"}
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "name": "Fluxo - Criação de Requisição",
+  "description": "Fluxo automático executado quando uma nova requisição é criada",
+  "trigger": {
+    "type": "When an item is created",
+    "list": "Requisições"
+  },
+  "actions": [
+    {
+      "type": "Get user profile",
+      "inputs": {
+        "user": "@{triggerOutputs()?['body/Solicitante']}"
+      }
+    },
+    {
+      "type": "Create item",
+      "inputs": {
+        "list": "Histórico",
+        "item": {
+          "Requisição": "@{triggerOutputs()?['body/ID']}",
+          "Ação": "Criada",
+          "Data": "@{utcNow()}",
+          "Usuário": "@{triggerOutputs()?['body/Solicitante']}",
+          "Comentário": "Nova requisição criada automaticamente"
+        }
+      }
+    },
+    {
+      "type": "Send email",
+      "inputs": {
+        "to": "@{body('Get_user_profile')?['mail']}",
+        "subject": "Requisição de Licitação Criada - #@{triggerOutputs()?['body/ID']}",
+        "body": "Sua requisição foi criada com sucesso e está aguardando aprovação.<br><br><strong>Detalhes:</strong><br>Título: @{triggerOutputs()?['body/Título da Licitação']}<br>Descrição: @{triggerOutputs()?['body/Descrição']}<br>Data de Abertura: @{formatDateTime(triggerOutputs()?['body/Data de Abertura'], 'dd/MM/yyyy')}<br><br>Status: @{triggerOutputs()?['body/Status']}<br><br>Você será notificado quando houver atualizações."
+      }
+    },
+    {
+      "type": "Condition",
+      "expression": "@{equals(triggerOutputs()?['body/Aprovador'], '')}",
+      "actions": {
+        "true": [
+          {
+            "type": "Send email",
+            "inputs": {
+              "to": "admin@empresa.com",
+              "subject": "Nova Requisição Sem Aprovador - #@{triggerOutputs()?['body/ID']}",
+              "body": "Uma nova requisição foi criada mas não possui aprovador designado.<br><br><strong>Detalhes:</strong><br>Título: @{triggerOutputs()?['body/Título da Licitação']}<br>Solicitante: @{body('Get_user_profile')?['displayName']}<br><br>Por favor, designe um aprovador."
+            }
+          }
+        ],
+        "false": [
+          {
+            "type": "Get user profile",
+            "inputs": {
+              "user": "@{triggerOutputs()?['body/Aprovador']}"
+            }
+          },
+          {
+            "type": "Send email",
+            "inputs": {
+              "to": "@{body('Get_user_profile_2')?['mail']}",
+              "subject": "Nova Requisição para Aprovação - #@{triggerOutputs()?['body/ID']}",
+              "body": "Você tem uma nova requisição para aprovar.<br><br><strong>Detalhes:</strong><br>Título: @{triggerOutputs()?['body/Título da Licitação']}<br>Descrição: @{triggerOutputs()?['body/Descrição']}<br>Solicitante: @{body('Get_user_profile')?['displayName']}<br>Data de Abertura: @{formatDateTime(triggerOutputs()?['body/Data de Abertura'], 'dd/MM/yyyy')}<br><br><a href='https://empresa.sharepoint.com/sites/licitacoes/Lists/Requisições/DispForm.aspx?ID=@{triggerOutputs()?['body/ID']}'>Clique aqui para aprovar</a>"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

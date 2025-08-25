@@ -1,0 +1,168 @@
+{
+  "name": "Fluxo - Integração OpenAI Completa",
+  "description": "Fluxo automático para análise e sumarização de requisições usando OpenAI",
+  "trigger": {
+    "type": "When an item is created or modified",
+    "list": "Requisições",
+    "filter": "not(equals(triggerOutputs()?['body/Descrição'], '')"
+  },
+  "actions": [
+    {
+      "type": "Initialize variable",
+      "inputs": {
+        "variables": [
+          {
+            "name": "varDescricao",
+            "type": "String",
+            "value": "@{triggerOutputs()?['body/Descrição']}"
+          },
+          {
+            "name": "varTitulo",
+            "type": "String",
+            "value": "@{triggerOutputs()?['body/Título da Licitação']}"
+          },
+          {
+            "name": "varCategoria",
+            "type": "String",
+            "value": "@{triggerOutputs()?['body/Categoria']}"
+          },
+          {
+            "name": "varValorEstimado",
+            "type": "String",
+            "value": "@{triggerOutputs()?['body/Valor Estimado']}"
+          }
+        ]
+      }
+    },
+    {
+      "type": "HTTP",
+      "inputs": {
+        "method": "POST",
+        "uri": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "Authorization": "Bearer @{variables('varOpenAIToken')}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "model": "gpt-4o-mini",
+          "messages": [
+            {
+              "role": "system",
+              "content": "Você é um assistente especializado em análise de licitações. Analise a descrição fornecida e forneça: 1) Um resumo conciso (máximo 100 palavras), 2) Palavras-chave relevantes, 3) Categoria sugerida, 4) Nível de complexidade (Baixo, Médio, Alto), 5) Recomendações para o processo de licitação. Seja objetivo e profissional."
+            },
+            {
+              "role": "user",
+              "content": "Título: @{variables('varTitulo')}\nCategoria: @{variables('varCategoria')}\nValor Estimado: @{variables('varValorEstimado')}\nDescrição: @{variables('varDescricao')}\n\nPor favor, analise esta requisição de licitação e forneça as informações solicitadas."
+            }
+          ],
+          "max_tokens": 500,
+          "temperature": 0.3
+        }
+      }
+    },
+    {
+      "type": "Parse JSON",
+      "inputs": {
+        "content": "@{body('HTTP')}",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "choices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "object",
+                    "properties": {
+                      "content": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Initialize variable",
+      "inputs": {
+        "variables": [
+          {
+            "name": "varRespostaOpenAI",
+            "type": "String",
+            "value": "@{first(body('Parse_JSON')?['choices'])?['message']?['content']}"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Update item",
+      "inputs": {
+        "list": "Requisições",
+        "id": "@{triggerOutputs()?['body/ID']}",
+        "item": {
+          "Observações": "Análise IA: @{variables('varRespostaOpenAI')}",
+          "Data de Modificação": "@{utcNow()}"
+        }
+      }
+    },
+    {
+      "type": "Create item",
+      "inputs": {
+        "list": "Histórico",
+        "item": {
+          "Requisição": "@{triggerOutputs()?['body/ID']}",
+          "Ação": "Análise IA Realizada",
+          "Data": "@{utcNow()}",
+          "Usuário": "Sistema IA",
+          "Comentário": "Análise automática realizada pela IA: @{variables('varRespostaOpenAI')}"
+        }
+      }
+    },
+    {
+      "type": "Condition",
+      "expression": "@{contains(variables('varRespostaOpenAI'), 'ALTO') or contains(variables('varRespostaOpenAI'), 'Alto')}",
+      "actions": {
+        "true": [
+          {
+            "type": "Send email",
+            "inputs": {
+              "to": "gerencia@empresa.com",
+              "subject": "ALERTA: Requisição de Alta Complexidade - #@{triggerOutputs()?['body/ID']}",
+              "body": "Uma requisição foi identificada como de alta complexidade pela IA.<br><br><strong>Detalhes:</strong><br>Título: @{variables('varTitulo')}<br>Valor Estimado: @{variables('varValorEstimado')}<br>Categoria: @{variables('varCategoria')}<br><br><strong>Análise da IA:</strong><br>@{variables('varRespostaOpenAI')}<br><br><strong>Recomendação:</strong> Esta requisição pode requerer atenção especial e análise detalhada antes da aprovação."
+            }
+          }
+        ],
+        "false": []
+      }
+    },
+    {
+      "type": "Condition",
+      "expression": "@{greater(triggerOutputs()?['body/Valor Estimado'], 100000)}",
+      "actions": {
+        "true": [
+          {
+            "type": "Send email",
+            "inputs": {
+              "to": "compras@empresa.com",
+              "subject": "Requisição de Alto Valor - #@{triggerOutputs()?['body/ID']}",
+              "body": "Uma requisição de alto valor foi analisada pela IA.<br><br><strong>Detalhes:</strong><br>Título: @{variables('varTitulo')}<br>Valor Estimado: R$ @{formatNumber(triggerOutputs()?['body/Valor Estimado'], 'C')}<br>Categoria: @{variables('varCategoria')}<br><br><strong>Análise da IA:</strong><br>@{variables('varRespostaOpenAI')}<br><br>Esta requisição pode requerer processo de licitação mais rigoroso."
+            }
+          }
+        ],
+        "false": []
+      }
+    }
+  ],
+  "variables": [
+    {
+      "name": "varOpenAIToken",
+      "type": "String",
+      "value": "@{environment('OpenAI_API_Key')}"
+    }
+  ]
+}

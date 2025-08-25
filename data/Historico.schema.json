@@ -1,0 +1,80 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/list-formatting.schema.json",
+  "title": "Histórico",
+  "description": "Lista para rastrear histórico de ações nas requisições",
+  "columns": [
+    {
+      "name": "Requisição",
+      "type": "Lookup",
+      "list": "Requisições",
+      "required": true,
+      "description": "Referência à requisição relacionada"
+    },
+    {
+      "name": "Ação",
+      "type": "Choice",
+      "choices": ["Criada", "Editada", "Enviada para Aprovação", "Aprovada", "Reprovada", "Cancelada", "Comentário Adicionado"],
+      "required": true,
+      "description": "Tipo de ação realizada"
+    },
+    {
+      "name": "Data",
+      "type": "DateTime",
+      "required": true,
+      "description": "Data e hora da ação"
+    },
+    {
+      "name": "Usuário",
+      "type": "User",
+      "required": true,
+      "description": "Usuário que realizou a ação"
+    },
+    {
+      "name": "Comentário",
+      "type": "Note",
+      "required": false,
+      "description": "Comentário adicional sobre a ação"
+    },
+    {
+      "name": "Detalhes",
+      "type": "Text",
+      "required": false,
+      "maxLength": 500,
+      "description": "Detalhes adicionais da ação"
+    },
+    {
+      "name": "Campo Modificado",
+      "type": "Text",
+      "required": false,
+      "description": "Campo que foi modificado (se aplicável)"
+    },
+    {
+      "name": "Valor Anterior",
+      "type": "Text",
+      "required": false,
+      "description": "Valor anterior do campo (se aplicável)"
+    },
+    {
+      "name": "Valor Novo",
+      "type": "Text",
+      "required": false,
+      "description": "Novo valor do campo (se aplicável)"
+    }
+  ],
+  "views": [
+    {
+      "name": "Todas as Ações",
+      "columns": ["Requisição", "Ação", "Usuário", "Data", "Comentário"]
+    },
+    {
+      "name": "Ações por Requisição",
+      "columns": ["Ação", "Usuário", "Data", "Comentário", "Detalhes"],
+      "groupBy": "Requisição"
+    },
+    {
+      "name": "Ações Recentes",
+      "columns": ["Requisição", "Ação", "Usuário", "Data"],
+      "sort": "Data desc"
+    }
+  ]
+}

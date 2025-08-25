@@ -1,0 +1,7 @@
+// Exemplo de Power Fx para controle de acesso no Power Apps
+// Colar no DisplayMode do botão Aprovar
+If(
+   User().Email = ThisItem.Aprovador.Email,
+   DisplayMode.Edit,
+   DisplayMode.Disabled
+)

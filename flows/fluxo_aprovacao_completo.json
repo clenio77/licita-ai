@@ -1,0 +1,70 @@
+{
+  "name": "Fluxo - Aprovação de Requisição",
+  "description": "Fluxo automático executado quando uma requisição é aprovada ou reprovada",
+  "trigger": {
+    "type": "When an item is modified",
+    "list": "Requisições",
+    "filter": "Status eq 'Aprovado' or Status eq 'Reprovado'"
+  },
+  "actions": [
+    {
+      "type": "Get user profile",
+      "inputs": {
+        "user": "@{triggerOutputs()?['body/Solicitante']}"
+      }
+    },
+    {
+      "type": "Get user profile",
+      "inputs": {
+        "user": "@{triggerOutputs()?['body/Aprovador']}"
+      }
+    },
+    {
+      "type": "Create item",
+      "inputs": {
+        "list": "Histórico",
+        "item": {
+          "Requisição": "@{triggerOutputs()?['body/ID']}",
+          "Ação": "@{if(equals(triggerOutputs()?['body/Status'], 'Aprovado'), 'Aprovada', 'Reprovada')}",
+          "Data": "@{utcNow()}",
+          "Usuário": "@{triggerOutputs()?['body/Aprovador']}",
+          "Comentário": "Requisição @{if(equals(triggerOutputs()?['body/Status'], 'Aprovado'), 'aprovada', 'reprovada')} por @{body('Get_user_profile_2')?['displayName']}"
+        }
+      }
+    },
+    {
+      "type": "Send email",
+      "inputs": {
+        "to": "@{body('Get_user_profile')?['mail']}",
+        "subject": "Requisição @{if(equals(triggerOutputs()?['body/Status'], 'Aprovado'), 'Aprovada', 'Reprovada')} - #@{triggerOutputs()?['body/ID']}",
+        "body": "Sua requisição foi @{if(equals(triggerOutputs()?['body/Status'], 'Aprovado'), 'aprovada', 'reprovada')}.<br><br><strong>Detalhes:</strong><br>Título: @{triggerOutputs()?['body/Título da Licitação']}<br>Status: @{triggerOutputs()?['body/Status']}<br>Aprovador: @{body('Get_user_profile_2')?['displayName']}<br>Data: @{formatDateTime(utcNow(), 'dd/MM/yyyy HH:mm')}<br><br>@{if(equals(triggerOutputs()?['body/Status'], 'Aprovado'), 'Sua licitação foi aprovada e pode prosseguir com o processo.', 'Sua licitação foi reprovada. Entre em contato com o aprovador para mais detalhes.')}"
+      }
+    },
+    {
+      "type": "Condition",
+      "expression": "@{equals(triggerOutputs()?['body/Status'], 'Aprovado')}",
+      "actions": {
+        "true": [
+          {
+            "type": "Send email",
+            "inputs": {
+              "to": "compras@empresa.com",
+              "subject": "Nova Licitação Aprovada - #@{triggerOutputs()?['body/ID']}",
+              "body": "Uma nova licitação foi aprovada e está pronta para processamento.<br><br><strong>Detalhes:</strong><br>Título: @{triggerOutputs()?['body/Título da Licitação']}<br>Descrição: @{triggerOutputs()?['body/Descrição']}<br>Solicitante: @{body('Get_user_profile')?['displayName']}<br>Valor Estimado: @{triggerOutputs()?['body/Valor Estimado']}<br>Categoria: @{triggerOutputs()?['body/Categoria']}<br><br>Por favor, inicie o processo de licitação."
+            }
+          }
+        ],
+        "false": [
+          {
+            "type": "Send email",
+            "inputs": {
+              "to": "gerencia@empresa.com",
+              "subject": "Requisição Reprovada - #@{triggerOutputs()?['body/ID']}",
+              "body": "Uma requisição foi reprovada e pode requerer atenção.<br><br><strong>Detalhes:</strong><br>Título: @{triggerOutputs()?['body/Título da Licitação']}<br>Solicitante: @{body('Get_user_profile')?['displayName']}<br>Aprovador: @{body('Get_user_profile_2')?['displayName']}<br>Data: @{formatDateTime(utcNow(), 'dd/MM/yyyy HH:mm')}<br><br>Verifique se há necessidade de revisão ou esclarecimentos."
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

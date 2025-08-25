@@ -1,0 +1,361 @@
+{
+  "appName": "Licita-AI Dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard de alta performance em Power Apps para substituir Power BI",
+  "screens": [
+    {
+      "name": "Dashboard",
+      "description": "Dashboard principal com KPIs e gráficos em tempo real",
+      "controls": [
+        {
+          "type": "Label",
+          "text": "Dashboard Licita-AI - Tempo Real",
+          "fontSize": 28,
+          "fontWeight": "Bold",
+          "color": "#2E75B6"
+        },
+        {
+          "type": "Container",
+          "name": "conKPIs",
+          "layout": "Horizontal",
+          "gap": 16,
+          "controls": [
+            {
+              "type": "Container",
+              "name": "conTotal",
+              "style": {
+                "background": "#E3F2FD",
+                "border": "2px solid #2196F3",
+                "borderRadius": "8px",
+                "padding": "16px",
+                "minWidth": "200px"
+              },
+              "controls": [
+                {
+                  "type": "Label",
+                  "text": "Total Requisições",
+                  "fontSize": 14,
+                  "color": "#1976D2"
+                },
+                {
+                  "type": "Label",
+                  "text": CountRows(Requisicoes),
+                  "fontSize": 32,
+                  "fontWeight": "Bold",
+                  "color": "#1565C0"
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "name": "conPendentes",
+              "style": {
+                "background": "#FFF3E0",
+                "border": "2px solid #FF9800",
+                "borderRadius": "8px",
+                "padding": "16px",
+                "minWidth": "200px"
+              },
+              "controls": [
+                {
+                  "type": "Label",
+                  "text": "Pendentes",
+                  "fontSize": 14,
+                  "color": "#F57C00"
+                },
+                {
+                  "type": "Label",
+                  "text": CountRows(Filter(Requisicoes, Status = "Pendente")),
+                  "fontSize": 32,
+                  "fontWeight": "Bold",
+                  "color": "#E65100"
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "name": "conAprovadas",
+              "style": {
+                "background": "#E8F5E8",
+                "border": "2px solid #4CAF50",
+                "borderRadius": "8px",
+                "padding": "16px",
+                "minWidth": "200px"
+              },
+              "controls": [
+                {
+                  "type": "Label",
+                  "text": "Aprovadas",
+                  "fontSize": 14,
+                  "color": "#388E3C"
+                },
+                {
+                  "type": "Label",
+                  "text": CountRows(Filter(Requisicoes, Status = "Aprovado")),
+                  "fontSize": 32,
+                  "fontWeight": "Bold",
+                  "color": "#2E7D32"
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "name": "conTaxa",
+              "style": {
+                "background": "#F3E5F5",
+                "border": "2px solid #9C27B0",
+                "borderRadius": "8px",
+                "padding": "16px",
+                "minWidth": "200px"
+              },
+              "controls": [
+                {
+                  "type": "Label",
+                  "text": "Taxa Aprovação",
+                  "fontSize": 14,
+                  "color": "#7B1FA2"
+                },
+                {
+                  "type": "Label",
+                  "text": Text(Round(CountRows(Filter(Requisicoes, Status = "Aprovado")) / CountRows(Requisicoes) * 100, 1)) & "%",
+                  "fontSize": 32,
+                  "fontWeight": "Bold",
+                  "color": "#6A1B9A"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Container",
+          "name": "conGraficos",
+          "layout": "Horizontal",
+          "gap": 16,
+          "controls": [
+            {
+              "type": "Container",
+              "name": "conStatusChart",
+              "style": {
+                "background": "White",
+                "border": "1px solid #E0E0E0",
+                "borderRadius": "8px",
+                "padding": "16px",
+                "flex": 1
+              },
+              "controls": [
+                {
+                  "type": "Label",
+                  "text": "Distribuição por Status",
+                  "fontSize": 18,
+                  "fontWeight": "Bold",
+                  "color": "#424242"
+                },
+                {
+                  "type": "Gallery",
+                  "name": "galStatus",
+                  "dataSource": "AddColumns(GroupBy(Requisicoes, 'Status', 'Count', CountRows(ThisRecord)), 'Percentage', Round(Count / CountRows(Requisicoes) * 100, 1))",
+                  "layout": "Vertical",
+                  "template": {
+                    "controls": [
+                      {
+                        "type": "Container",
+                        "style": {
+                          "display": "flex",
+                          "justify-content": "space-between",
+                          "align-items": "center",
+                          "padding": "8px",
+                          "border-bottom": "1px solid #E0E0E0"
+                        },
+                        "controls": [
+                          {
+                            "type": "Label",
+                            "text": ThisItem.Status,
+                            "fontSize": 16,
+                            "color": "Switch(ThisItem.Status, 'Aprovado', '#4CAF50', 'Pendente', '#FF9800', 'Reprovado', '#F44336', 'Em Análise', '#2196F3', '#424242')"
+                          },
+                          {
+                            "type": "Label",
+                            "text": ThisItem.Count & " (" & ThisItem.Percentage & "%)",
+                            "fontSize": 14,
+                            "color": "#666666"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "name": "conCategoriaChart",
+              "style": {
+                "background": "White",
+                "border": "1px solid #E0E0E0",
+                "borderRadius": "8px",
+                "padding": "16px",
+                "flex": 1
+              },
+              "controls": [
+                {
+                  "type": "Label",
+                  "text": "Requisições por Categoria",
+                  "fontSize": 18,
+                  "fontWeight": "Bold",
+                  "color": "#424242"
+                },
+                {
+                  "type": "Gallery",
+                  "name": "galCategoria",
+                  "dataSource": "AddColumns(GroupBy(Requisicoes, 'Categoria', 'Count', CountRows(ThisRecord)), 'Percentage', Round(Count / CountRows(Requisicoes) * 100, 1))",
+                  "layout": "Vertical",
+                  "template": {
+                    "controls": [
+                      {
+                        "type": "Container",
+                        "style": {
+                          "display": "flex",
+                          "justify-content": "space-between",
+                          "align-items": "center",
+                          "padding": "8px",
+                          "border-bottom": "1px solid #E0E0E0"
+                        },
+                        "controls": [
+                          {
+                            "type": "Label",
+                            "text": ThisItem.Categoria,
+                            "fontSize": 16,
+                            "color": "#424242"
+                          },
+                          {
+                            "type": "Label",
+                            "text": ThisItem.Count & " (" & ThisItem.Percentage & "%)",
+                            "fontSize": 14,
+                            "color": "#666666"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Container",
+          "name": "conTabelas",
+          "layout": "Vertical",
+          "gap": 16,
+          "controls": [
+            {
+              "type": "Label",
+              "text": "Requisições Recentes",
+              "fontSize": 20,
+              "fontWeight": "Bold",
+              "color": "#424242"
+            },
+            {
+              "type": "Gallery",
+              "name": "galRequisicoes",
+              "dataSource": "SortByColumns(Requisicoes, 'Data de Criação', If(SortDescending1, SortOrder.Descending, SortOrder.Ascending))",
+              "layout": "Vertical",
+              "template": {
+                "controls": [
+                  {
+                    "type": "Container",
+                    "style": {
+                      "background": "White",
+                      "border": "1px solid #E0E0E0",
+                      "borderRadius": "8px",
+                      "padding": "16px",
+                      "margin": "8px 0"
+                    },
+                    "controls": [
+                      {
+                        "type": "Container",
+                        "layout": "Horizontal",
+                        "controls": [
+                          {
+                            "type": "Label",
+                            "text": ThisItem.'Título da Licitação',
+                            "fontSize": 18,
+                            "fontWeight": "Bold",
+                            "color": "#424242",
+                            "flex": 1
+                          },
+                          {
+                            "type": "Label",
+                            "text": ThisItem.Status,
+                            "fontSize": 14,
+                            "color": "Switch(ThisItem.Status, 'Aprovado', '#4CAF50', 'Pendente', '#FF9800', 'Reprovado', '#F44336', 'Em Análise', '#2196F3', '#424242')",
+                            "style": {
+                              "background": "Switch(ThisItem.Status, 'Aprovado', '#E8F5E8', 'Pendente', '#FFF3E0', 'Reprovado', '#FFEBEE', 'Em Análise', '#E3F2FD', '#F5F5F5')",
+                              "padding": "4px 8px",
+                              "border-radius": "4px",
+                              "border": "1px solid currentColor"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "Container",
+                        "layout": "Horizontal",
+                        "controls": [
+                          {
+                            "type": "Label",
+                            "text": "Solicitante: " & ThisItem.Solicitante.DisplayName,
+                            "fontSize": 14,
+                            "color": "#666666",
+                            "flex": 1
+                          },
+                          {
+                            "type": "Label",
+                            "text": "Data: " & Text(ThisItem.'Data de Criação', "dd/mm/yyyy"),
+                            "fontSize": 14,
+                            "color": "#666666"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "Label",
+                        "text": "Categoria: " & ThisItem.Categoria,
+                        "fontSize": 14,
+                        "color": "#666666"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "dataSources": [
+    {
+      "name": "Requisicoes",
+      "type": "SharePoint",
+      "list": "Requisições"
+    },
+    {
+      "name": "Historico",
+      "type": "SharePoint",
+      "list": "Histórico"
+    }
+  ],
+  "variables": [
+    {
+      "name": "varRefreshTimer",
+      "value": "Timer"
+    }
+  ],
+  "functions": [
+    {
+      "name": "RefreshData",
+      "description": "Atualiza dados do dashboard",
+      "code": "Refresh('Requisicoes'); Refresh('Historico')"
+    }
+  ]
+}

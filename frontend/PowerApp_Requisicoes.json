@@ -1,0 +1,253 @@
+{
+  "appName": "Licita-AI - Gerenciamento de Requisições",
+  "version": "1.0.0",
+  "description": "Power App para gerenciamento completo de requisições de licitações",
+  "screens": [
+    {
+      "name": "Home",
+      "description": "Tela principal com dashboard e navegação",
+      "controls": [
+        {
+          "type": "Label",
+          "text": "Licita-AI - Sistema de Requisições",
+          "fontSize": 24,
+          "fontWeight": "Bold"
+        },
+        {
+          "type": "Button",
+          "text": "Nova Requisição",
+          "onSelect": "Navigate('NovaRequisicao')"
+        },
+        {
+          "type": "Button",
+          "text": "Minhas Requisições",
+          "onSelect": "Navigate('MinhasRequisicoes')"
+        },
+        {
+          "type": "Button",
+          "text": "Aprovações Pendentes",
+          "onSelect": "Navigate('AprovacoesPendentes')",
+          "visible": "User().Email in 'Aprovadores'"
+        },
+        {
+          "type": "Button",
+          "text": "Dashboard",
+          "onSelect": "Navigate('Dashboard')"
+        }
+      ]
+    },
+    {
+      "name": "NovaRequisicao",
+      "description": "Formulário para criação de nova requisição",
+      "dataSource": "Requisicoes",
+      "controls": [
+        {
+          "type": "TextInput",
+          "name": "txtTitulo",
+          "label": "Título da Licitação",
+          "required": true,
+          "maxLength": 255
+        },
+        {
+          "type": "TextArea",
+          "name": "txtDescricao",
+          "label": "Descrição",
+          "required": true,
+          "height": 120
+        },
+        {
+          "type": "DatePicker",
+          "name": "dpDataAbertura",
+          "label": "Data de Abertura",
+          "required": true
+        },
+        {
+          "type": "Dropdown",
+          "name": "ddCategoria",
+          "label": "Categoria",
+          "items": ["Serviços", "Produtos", "Obras", "Tecnologia", "Outros"],
+          "required": false
+        },
+        {
+          "type": "NumberInput",
+          "name": "numValorEstimado",
+          "label": "Valor Estimado (R$)",
+          "required": false,
+          "min": 0
+        },
+        {
+          "type": "PeoplePicker",
+          "name": "ppAprovador",
+          "label": "Aprovador",
+          "required": false,
+          "searchEnabled": true
+        },
+        {
+          "type": "Button",
+          "text": "Salvar Rascunho",
+          "onSelect": "SaveDraft()"
+        },
+        {
+          "type": "Button",
+          "text": "Enviar para Aprovação",
+          "onSelect": "SubmitForApproval()",
+          "primary": true
+        }
+      ]
+    },
+    {
+      "name": "MinhasRequisicoes",
+      "description": "Lista das requisições do usuário logado",
+      "dataSource": "Requisicoes",
+      "filter": "Solicitante.Email eq User().Email",
+      "controls": [
+        {
+          "type": "Gallery",
+          "name": "galMinhasRequisicoes",
+          "dataSource": "Filter(Requisicoes, Solicitante.Email eq User().Email)",
+          "layout": "Vertical",
+          "template": {
+            "controls": [
+              {
+                "type": "Label",
+                "text": "ThisItem.'Título da Licitação'",
+                "fontSize": 16,
+                "fontWeight": "Bold"
+              },
+              {
+                "type": "Label",
+                "text": "Status: " & ThisItem.Status,
+                "color": "Switch(ThisItem.Status, 'Aprovado', Green, 'Reprovado', Red, 'Pendente', Orange, 'Em Análise', Blue, Black)"
+              },
+              {
+                "type": "Label",
+                "text": "Data: " & Text(ThisItem.'Data de Abertura', "dd/mm/yyyy")
+              },
+              {
+                "type": "Button",
+                "text": "Ver Detalhes",
+                "onSelect": "Navigate('DetalhesRequisicao', {id: ThisItem.ID})"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AprovacoesPendentes",
+      "description": "Lista de requisições pendentes de aprovação",
+      "dataSource": "Requisicoes",
+      "filter": "Status eq 'Pendente' or Status eq 'Em Análise'",
+      "controls": [
+        {
+          "type": "Gallery",
+          "name": "galAprovacoesPendentes",
+          "dataSource": "Filter(Requisicoes, Status eq 'Pendente' or Status eq 'Em Análise')",
+          "layout": "Vertical",
+          "template": {
+            "controls": [
+              {
+                "type": "Label",
+                "text": "ThisItem.'Título da Licitação'",
+                "fontSize": 16,
+                "fontWeight": "Bold"
+              },
+              {
+                "type": "Label",
+                "text": "Solicitante: " & ThisItem.Solicitante.DisplayName
+              },
+              {
+                "type": "Label",
+                "text": "Data: " & Text(ThisItem.'Data de Abertura', "dd/mm/yyyy")
+              },
+              {
+                "type": "Button",
+                "text": "Aprovar",
+                "onSelect": "AprovarRequisicao(ThisItem.ID)",
+                "color": "Green"
+              },
+              {
+                "type": "Button",
+                "text": "Reprovar",
+                "onSelect": "ReprovarRequisicao(ThisItem.ID)",
+                "color": "Red"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "Dashboard com estatísticas e gráficos",
+      "controls": [
+        {
+          "type": "Label",
+          "text": "Dashboard - Estatísticas Gerais",
+          "fontSize": 20,
+          "fontWeight": "Bold"
+        },
+        {
+          "type": "Label",
+          "text": "Total de Requisições: " & CountRows(Requisicoes)
+        },
+        {
+          "type": "Label",
+          "text": "Pendentes: " & CountRows(Filter(Requisicoes, Status eq 'Pendente'))
+        },
+        {
+          "type": "Label",
+          "text": "Aprovadas: " & CountRows(Filter(Requisicoes, Status eq 'Aprovado'))
+        },
+        {
+          "type": "Label",
+          "text": "Reprovadas: " & CountRows(Filter(Requisicoes, Status eq 'Reprovado'))
+        }
+      ]
+    }
+  ],
+  "dataSources": [
+    {
+      "name": "Requisicoes",
+      "type": "SharePoint",
+      "list": "Requisições"
+    },
+    {
+      "name": "Historico",
+      "type": "SharePoint",
+      "list": "Histórico"
+    }
+  ],
+  "variables": [
+    {
+      "name": "varUsuarioAtual",
+      "value": "User()"
+    },
+    {
+      "name": "varRequisicaoSelecionada",
+      "value": "{}"
+    }
+  ],
+  "functions": [
+    {
+      "name": "SaveDraft",
+      "description": "Salva a requisição como rascunho",
+      "code": "Patch('Requisicoes', Defaults('Requisicoes'), { 'Título da Licitação': txtTitulo.Text, 'Descrição': txtDescricao.Text, 'Data de Abertura': dpDataAbertura.SelectedDate, 'Categoria': ddCategoria.Selected, 'Valor Estimado': numValorEstimado.Value, 'Aprovador': ppAprovador.Selected, 'Status': 'Pendente', 'Solicitante': User(), 'Data de Criação': Now() })"
+    },
+    {
+      "name": "SubmitForApproval",
+      "description": "Envia a requisição para aprovação",
+      "code": "Patch('Requisicoes', Defaults('Requisicoes'), { 'Título da Licitação': txtTitulo.Text, 'Descrição': txtDescricao.Text, 'Data de Abertura': dpDataAbertura.SelectedDate, 'Categoria': ddCategoria.Selected, 'Valor Estimado': numValorEstimado.Value, 'Aprovador': ppAprovador.Selected, 'Status': 'Pendente', 'Solicitante': User(), 'Data de Criação': Now() }); Navigate('Home')"
+    },
+    {
+      "name": "AprovarRequisicao",
+      "description": "Aprova uma requisição",
+      "code": "Patch('Requisicoes', LookUp('Requisicoes', ID = varRequisicaoSelecionada.ID), { 'Status': 'Aprovado', 'Data de Modificação': Now() })"
+    },
+    {
+      "name": "ReprovarRequisicao",
+      "description": "Reprova uma requisição",
+      "code": "Patch('Requisicoes', LookUp('Requisicoes', ID = varRequisicaoSelecionada.ID), { 'Status': 'Reprovado', 'Data de Modificação': Now() })"
+    }
+  ]
+}
